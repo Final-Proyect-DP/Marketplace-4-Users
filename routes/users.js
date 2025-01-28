@@ -6,23 +6,29 @@ const User = require('../models/User');
  * @swagger
  * /users/{id}:
  *   get:
- *     summary: Obtiene un usuario por ID
+ *     summary: Get a user by ID
  *     parameters:
  *       - in: path
  *         name: id
  *         required: true
  *         schema:
  *           type: string
- *         description: ID del usuario
+ *         description: user`s ID
  *       - in: query
  *         name: token
  *         required: true
  *         schema:
  *           type: string
- *         description: Token de autenticación
+ *         description: Authentication token
+ *       - in: query
+ *         name: requesterId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Requester user ID
  *     responses:
  *       200:
- *         description: Usuario encontrado
+ *         description: User found
  *         content:
  *           application/json:
  *             schema:
@@ -49,40 +55,41 @@ const User = require('../models/User');
  *                     contentType:
  *                       type: string
  *       404:
- *         description: Usuario no encontrado
+ *         description: User not found
  *       401:
- *         description: Token no válido
+ *         description: Invalid token
  */
 router.get('/:id', async (req, res) => {
   const token = req.query.token;
+  const requesterId = req.query.requesterId;
   const userId = req.params.id;
 
-  if (!token) {
-    return res.status(401).json({ message: 'Token no válido' });
+  if (!token || !requesterId) {
+    return res.status(401).json({ message: 'Invalid token or requester ID' });
   }
 
-  req.redisClient.get(userId, async (err, redisToken) => {
+  req.redisClient.get(requesterId, async (err, redisToken) => {
     if (err) {
       return res.status(500).json({ message: err.message });
     }
 
     if (redisToken !== token) {
-      return res.status(401).json({ message: 'Token no válido' });
+      return res.status(401).json({ message: 'Invalid token' });
     }
 
     try {
-      // Buscar todos los usuarios en la base de datos
-      const users = await User.find({}, 'username email firstName lastName address phone semester parallel career description');
+      // Find the user by ID in the database
+      const user = await User.findById(userId, 'username email firstName lastName address phone semester parallel career description');
 
-      // Verificar si se encontraron usuarios
-      if (users.length === 0) {
-        return res.status(404).json({ message: 'No se encontraron usuarios' });
+      // Check if the user was found
+      if (!user) {
+        return res.status(404).json({ message: 'User not found' });
       }
 
-      // Devolver la lista de usuarios
-      res.json(users);
+      // Return the user data
+      res.json(user);
     } catch (err) {
-      // Manejar errores
+      // Handle errors
       res.status(500).json({ message: err.message });
     }
   });

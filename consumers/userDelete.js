@@ -29,3 +29,14 @@ consumer.on('message', async (message) => {
 consumer.on('error', (err) => {
   console.error('Consumer error:', err);
 });
+
+// Inicializar el consumidor
+consumer.on('ready', () => {
+  console.log('Kafka consumer for userDelete is ready');
+});
+
+consumer.on('connect', () => {
+  console.log('Kafka consumer for userDelete connected');
+});
+
+module.exports = { consumer };

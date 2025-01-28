@@ -27,6 +27,18 @@ consumer.on('message', async (message) => {
   }
 });
 
+
+// Inicializar el consumidor
+consumer.on('ready', () => {
+  console.log('Kafka consumer for userEdit is ready');
+});
+
+consumer.on('connect', () => {
+  console.log('Kafka consumer for userEdit connected');
+});
+
 consumer.on('error', (err) => {
   console.error('Consumer error:', err);
 });
+
+module.exports = { consumer };

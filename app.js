@@ -12,6 +12,31 @@ const userEdit= require('./consumers/userEdit');
 
 dotenv.config();
 
+// Initialize Kafka consumers
+userCreated.consumer.on('ready', () => {
+  console.log('Kafka consumer for userCreated is ready');
+});
+
+userCreated.consumer.on('connect', () => {
+  console.log('Kafka consumer for userCreated connected');
+});
+
+userDelete.consumer.on('ready', () => {
+  console.log('Kafka consumer for userDelete is ready');
+});
+
+userDelete.consumer.on('connect', () => {
+  console.log('Kafka consumer for userDelete connected');
+});
+
+userEdit.consumer.on('ready', () => {
+  console.log('Kafka consumer for userEdit is ready');
+});
+
+userEdit.consumer.on('connect', () => {
+  console.log('Kafka consumer for userEdit connected');
+});
+
 const app = express();
 const port = process.env.PORT || 3004;
 
@@ -20,7 +45,7 @@ const swaggerOptions = {
     info: {
       title: 'Users API',
       version: '1.0.0',
-      description: 'API para leer usuarios de MongoDB',
+      description: 'API to read users from MongoDB',
     },
   },
   apis: ['./routes/*.js'],
