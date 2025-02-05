@@ -12,7 +12,7 @@ const userEdit= require('./consumers/userEdit');
 
 dotenv.config();
 
-// Initialize Kafka consumers
+
 userCreated.consumer.on('ready', () => {
   console.log('Kafka consumer for userCreated is ready');
 });
