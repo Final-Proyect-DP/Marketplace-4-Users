@@ -9,7 +9,10 @@ const client = new kafka.KafkaClient({ kafkaHost: process.env.KAFKA_BROKER });
 const consumer = new kafka.Consumer(
   client,
   [{ topic: process.env.KAFKA_TOPIC_EDIT_USER, partition: 0 }],
-  { autoCommit: true }
+  { 
+    autoCommit: true,
+    groupId: 'user-edit-consumer-group'
+  }
 );
 
 consumer.on('message', async (message) => {
