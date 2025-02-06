@@ -11,7 +11,7 @@ const consumer = new kafka.Consumer(
   [{ topic: process.env.KAFKA_TOPIC_EDIT_USER, partition: 0 }],
   { 
     autoCommit: true,
-    groupId: 'user-edit-consumer-group'
+    groupId: 'userx-edit-consumer-group'
   }
 );
 

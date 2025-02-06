@@ -11,7 +11,7 @@ const consumer = new kafka.Consumer(
   [{ topic: process.env.KAFKA_TOPIC_CREATE_USER, partition: 0 }],
   { 
     autoCommit: true,
-    groupId: 'user-create-consumer-group'
+    groupId: 'userx-create-consumer-group'
   }
 );
 

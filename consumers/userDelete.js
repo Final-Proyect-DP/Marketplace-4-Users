@@ -11,7 +11,7 @@ const consumer = new kafka.Consumer(
   [{ topic: process.env.KAFKA_TOPIC_DELETE_USER, partition: 0 }],
   { 
     autoCommit: true,
-    groupId: 'user-delete-consumer-group'
+    groupId: 'userx-delete-consumer-group'
   }
 );
 
