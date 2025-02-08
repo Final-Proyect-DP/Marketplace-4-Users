@@ -61,14 +61,21 @@ router.get('/:id',
   handleAuthError, 
   async (req, res) => {
   const userId = req.params.id;
+  const requesterId = req.query.requesterId;
+
+  if (!requesterId) {
+    return res.status(400).json({ message: 'requesterId is required' });
+  }
 
   try {
-    const users = await User.find({}, 'username email firstName lastName address phone semester parallel career description');
-    if (!users || users.length === 0) {
-      throw new Error('No users found');
+    const requester = await User.findById(requesterId, 'username email firstName lastName address phone semester parallel career description');
+    
+    if (!requester) {
+      throw new Error('Requester not found');
     }
-    logger.info('All users retrieved');
-    res.json(users);
+
+    logger.info(`User data retrieved for requesterId: ${requesterId}`);
+    res.json(requester);
   } catch (err) {
     const { status, response } = handleErrors(err);
     res.status(status).json(response);

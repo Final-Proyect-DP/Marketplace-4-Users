@@ -13,7 +13,7 @@ const userLogoutConsumer = require('./consumers/userLogoutConsumer');
 const swaggerUi = require('swagger-ui-express');
 
 const app = express();
-const PORT = process.env.PORT || 3023;
+const PORT = process.env.PORT || 3090;
 const corsOptions = {
   origin: '*',
   methods: ['GET'],
