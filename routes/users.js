@@ -18,13 +18,20 @@ const handleErrors = require('../utils/handleErrors');
  *   get:
  *     tags: [Users]
  *     summary: Get a user by ID
+ *     description: Retrieve user information based on the provided ID and requester authentication
  *     parameters:
  *       - in: path
  *         name: id
  *         required: true
  *         schema:
  *           type: string
- *         description: User ID
+ *         description: User ID to retrieve
+ *       - in: query
+ *         name: requesterId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID of the user making the request
  *       - in: query
  *         name: token
  *         required: true
@@ -33,7 +40,7 @@ const handleErrors = require('../utils/handleErrors');
  *         description: Authentication token
  *     responses:
  *       200:
- *         description: User found
+ *         description: Successfully retrieved user information
  *         content:
  *           application/json:
  *             schema:
@@ -41,20 +48,48 @@ const handleErrors = require('../utils/handleErrors');
  *               properties:
  *                 username:
  *                   type: string
+ *                   description: User's username
  *                 email:
  *                   type: string
+ *                   description: User's email address
  *                 firstName:
  *                   type: string
+ *                   description: User's first name
  *                 lastName:
  *                   type: string
+ *                   description: User's last name
  *                 address:
  *                   type: string
+ *                   description: User's address
  *                 phone:
  *                   type: string
- *       404:
- *         description: User not found
+ *                   description: User's phone number
+ *                 semester:
+ *                   type: string
+ *                   description: User's current semester
+ *                 parallel:
+ *                   type: string
+ *                   description: User's parallel group
+ *                 career:
+ *                   type: string
+ *                   description: User's career program
+ *                 description:
+ *                   type: string
+ *                   description: User's profile description
+ *       400:
+ *         description: Bad Request - Missing required parameters
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: requesterId is required
  *       401:
- *         description: Invalid token
+ *         description: Unauthorized - Invalid or missing token
+ *       404:
+ *         description: Not Found - User or requester not found
  */
 router.get('/:id', 
   verifyToken, 
