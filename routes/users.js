@@ -1,11 +1,22 @@
 const express = require('express');
 const router = express.Router();
-const User = require('../models/User');
+const User = require('../models/User');  // Cambiado de '../models/user' a '../models/User'
+const logger = require('../config/logger');
+const { verifyToken, handleAuthError } = require('../middlewares/authMiddleware');
+const handleErrors = require('../utils/handleErrors');
 
 /**
  * @swagger
- * /users/{id}:
+ * tags:
+ *   name: Users
+ *   description: API for user management
+ */
+
+/**
+ * @swagger
+ * /api/users/{id}:
  *   get:
+ *     tags: [Users]
  *     summary: Get a user by ID
  *     parameters:
  *       - in: path
@@ -13,19 +24,13 @@ const User = require('../models/User');
  *         required: true
  *         schema:
  *           type: string
- *         description: user`s ID
+ *         description: User ID
  *       - in: query
  *         name: token
  *         required: true
  *         schema:
  *           type: string
  *         description: Authentication token
- *       - in: query
- *         name: requesterId
- *         required: true
- *         schema:
- *           type: string
- *         description: Requester user ID
  *     responses:
  *       200:
  *         description: User found
@@ -46,53 +51,28 @@ const User = require('../models/User');
  *                   type: string
  *                 phone:
  *                   type: string
- *                 image:
- *                   type: object
- *                   properties:
- *                     data:
- *                       type: string
- *                       format: base64
- *                     contentType:
- *                       type: string
  *       404:
  *         description: User not found
  *       401:
  *         description: Invalid token
  */
-router.get('/:id', async (req, res) => {
-  const token = req.query.token;
-  const requesterId = req.query.requesterId;
+router.get('/:id', 
+  verifyToken, 
+  handleAuthError, 
+  async (req, res) => {
   const userId = req.params.id;
 
-  if (!token || !requesterId) {
-    return res.status(401).json({ message: 'Invalid token or requester ID' });
+  try {
+    const users = await User.find({}, 'username email firstName lastName address phone semester parallel career description');
+    if (!users || users.length === 0) {
+      throw new Error('No users found');
+    }
+    logger.info('All users retrieved');
+    res.json(users);
+  } catch (err) {
+    const { status, response } = handleErrors(err);
+    res.status(status).json(response);
   }
-
-  req.redisClient.get(requesterId, async (err, redisToken) => {
-    if (err) {
-      return res.status(500).json({ message: err.message });
-    }
-
-    if (redisToken !== token) {
-      return res.status(401).json({ message: 'Invalid token' });
-    }
-
-    try {
-      // Find the user by ID in the database
-      const user = await User.findById(userId, 'username email firstName lastName address phone semester parallel career description');
-
-      // Check if the user was found
-      if (!user) {
-        return res.status(404).json({ message: 'User not found' });
-      }
-
-      // Return the user data
-      res.json(user);
-    } catch (err) {
-      // Handle errors
-      res.status(500).json({ message: err.message });
-    }
-  });
 });
 
 module.exports = router;

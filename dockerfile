@@ -1,5 +1,5 @@
 # Use the official Node.js image as the base image
-FROM node:18-slim
+FROM node:18-alpine
 
 # Set the working directory
 WORKDIR /usr/src/app
@@ -14,7 +14,7 @@ RUN npm install
 COPY . .
 
 # Expose the port the app runs on
-EXPOSE 3090
+EXPOSE 3023
 
 # Command to run the application
 CMD ["npm", "start"]
