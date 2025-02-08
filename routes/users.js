@@ -14,7 +14,7 @@ const handleErrors = require('../utils/handleErrors');
 
 /**
  * @swagger
- * /api/users/{id}:
+ * /users/{id}:
  *   get:
  *     tags: [Users]
  *     summary: Get a user by ID
@@ -27,17 +27,17 @@ const handleErrors = require('../utils/handleErrors');
  *           type: string
  *         description: User ID to retrieve
  *       - in: query
- *         name: requesterId
- *         required: true
- *         schema:
- *           type: string
- *         description: ID of the user making the request
- *       - in: query
  *         name: token
  *         required: true
  *         schema:
  *           type: string
  *         description: Authentication token
+ *       - in: query
+ *         name: requesterId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID of the user making the request
  *     responses:
  *       200:
  *         description: Successfully retrieved user information

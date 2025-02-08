@@ -25,7 +25,7 @@ const corsOptions = {
 
 app.use(cors(corsOptions));
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
-app.use('/api/users', usersRouter);
+app.use('/users', usersRouter);
 app.get('/health', (req, res) => {
   res.status(200).json({ status: 'OK', service: 'Mark4User-Service' });
 });
