@@ -14,18 +14,18 @@ const handleErrors = require('../utils/handleErrors');
 
 /**
  * @swagger
- * /users/{id}:
+ * /users/{userToSearch}:
  *   get:
  *     tags: [Users]
- *     summary: Get a user by ID
- *     description: Retrieve user information based on the provided ID and requester authentication
+ *     summary: Get user information
+ *     description: Get information about a user. The userToSearch is the target user ID, and requesterId in query is who makes the request
  *     parameters:
  *       - in: path
- *         name: id
+ *         name: userToSearch
  *         required: true
  *         schema:
  *           type: string
- *         description: User ID to retrieve
+ *         description: ID of the user to search information about
  *       - in: query
  *         name: token
  *         required: true
@@ -91,30 +91,35 @@ const handleErrors = require('../utils/handleErrors');
  *       404:
  *         description: Not Found - User or requester not found
  */
-router.get('/:id', 
+router.get('/:userToSearch', 
+  (req, res, next) => {
+    // Añadir el requesterId al query params para el middleware de autenticación
+    req.query.id = req.query.requesterId;
+    next();
+  },
   verifyToken, 
   handleAuthError, 
   async (req, res) => {
-  const userId = req.params.id;
-  const requesterId = req.query.requesterId;
+    const userToSearch = req.params.userToSearch;
+    const requesterId = req.query.requesterId;
 
-  if (!requesterId) {
-    return res.status(400).json({ message: 'requesterId is required' });
-  }
-
-  try {
-    const requester = await User.findById(requesterId, 'username email firstName lastName address phone semester parallel career description');
-    
-    if (!requester) {
-      throw new Error('Requester not found');
+    if (!requesterId) {
+      return res.status(400).json({ message: 'Requester ID is required' });
     }
 
-    logger.info(`User data retrieved for requesterId: ${requesterId}`);
-    res.json(requester);
-  } catch (err) {
-    const { status, response } = handleErrors(err);
-    res.status(status).json(response);
-  }
+    try {
+      const user = await User.findById(userToSearch, 'username email firstName lastName address phone semester parallel career description');
+      
+      if (!user) {
+        throw new Error('User not found');
+      }
+
+      logger.info(`User data retrieved. Requester: ${requesterId}, SearchedUser: ${userToSearch}`);
+      res.json(user);
+    } catch (err) {
+      const { status, response } = handleErrors(err);
+      res.status(status).json(response);
+    }
 });
 
 module.exports = router;

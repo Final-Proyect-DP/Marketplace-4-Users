@@ -4,7 +4,7 @@ const logger = require('../config/logger');
 
 const verifyToken = (req, res, next) => {
   const { token } = req.query;
-  const { id } = req.params;
+  const id = req.query.id; // Cambio aquí para usar el id del query
 
   if (!token || !id) {
     logger.warn('Missing token or ID in request');
