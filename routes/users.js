@@ -1,19 +1,31 @@
 const express = require('express');
 const router = express.Router();
-const User = require('../models/User');
+const User = require('../models/User');  // Cambiado de '../models/user' a '../models/User'
+const logger = require('../config/logger');
+const { verifyToken, handleAuthError } = require('../middlewares/authMiddleware');
+const handleErrors = require('../utils/handleErrors');
 
 /**
  * @swagger
- * /users/{id}:
+ * tags:
+ *   name: Users
+ *   description: API for user management
+ */
+
+/**
+ * @swagger
+ * /users/{userToSearch}:
  *   get:
- *     summary: Get a user by ID
+ *     tags: [Users]
+ *     summary: Get user information
+ *     description: Get information about a user. The userToSearch is the target user ID, and requesterId in query is who makes the request
  *     parameters:
  *       - in: path
- *         name: id
+ *         name: userToSearch
  *         required: true
  *         schema:
  *           type: string
- *         description: user`s ID
+ *         description: ID of the user to search information about
  *       - in: query
  *         name: token
  *         required: true
@@ -25,10 +37,10 @@ const User = require('../models/User');
  *         required: true
  *         schema:
  *           type: string
- *         description: Requester user ID
+ *         description: ID of the user making the request
  *     responses:
  *       200:
- *         description: User found
+ *         description: Successfully retrieved user information
  *         content:
  *           application/json:
  *             schema:
@@ -36,63 +48,78 @@ const User = require('../models/User');
  *               properties:
  *                 username:
  *                   type: string
+ *                   description: User's username
  *                 email:
  *                   type: string
+ *                   description: User's email address
  *                 firstName:
  *                   type: string
+ *                   description: User's first name
  *                 lastName:
  *                   type: string
+ *                   description: User's last name
  *                 address:
  *                   type: string
+ *                   description: User's address
  *                 phone:
  *                   type: string
- *                 image:
- *                   type: object
- *                   properties:
- *                     data:
- *                       type: string
- *                       format: base64
- *                     contentType:
- *                       type: string
- *       404:
- *         description: User not found
+ *                   description: User's phone number
+ *                 semester:
+ *                   type: string
+ *                   description: User's current semester
+ *                 parallel:
+ *                   type: string
+ *                   description: User's parallel group
+ *                 career:
+ *                   type: string
+ *                   description: User's career program
+ *                 description:
+ *                   type: string
+ *                   description: User's profile description
+ *       400:
+ *         description: Bad Request - Missing required parameters
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: requesterId is required
  *       401:
- *         description: Invalid token
+ *         description: Unauthorized - Invalid or missing token
+ *       404:
+ *         description: Not Found - User or requester not found
  */
-router.get('/:id', async (req, res) => {
-  const token = req.query.token;
-  const requesterId = req.query.requesterId;
-  const userId = req.params.id;
+router.get('/:userToSearch', 
+  (req, res, next) => {
+    // Añadir el requesterId al query params para el middleware de autenticación
+    req.query.id = req.query.requesterId;
+    next();
+  },
+  verifyToken, 
+  handleAuthError, 
+  async (req, res) => {
+    const userToSearch = req.params.userToSearch;
+    const requesterId = req.query.requesterId;
 
-  if (!token || !requesterId) {
-    return res.status(401).json({ message: 'Invalid token or requester ID' });
-  }
-
-  req.redisClient.get(requesterId, async (err, redisToken) => {
-    if (err) {
-      return res.status(500).json({ message: err.message });
-    }
-
-    if (redisToken !== token) {
-      return res.status(401).json({ message: 'Invalid token' });
+    if (!requesterId) {
+      return res.status(400).json({ message: 'Requester ID is required' });
     }
 
     try {
-      // Find the user by ID in the database
-      const user = await User.findById(userId, 'username email firstName lastName address phone semester parallel career description');
-
-      // Check if the user was found
+      const user = await User.findById(userToSearch, 'username email firstName lastName address phone semester parallel career description');
+      
       if (!user) {
-        return res.status(404).json({ message: 'User not found' });
+        throw new Error('User not found');
       }
 
-      // Return the user data
+      logger.info(`User data retrieved. Requester: ${requesterId}, SearchedUser: ${userToSearch}`);
       res.json(user);
     } catch (err) {
-      // Handle errors
-      res.status(500).json({ message: err.message });
+      const { status, response } = handleErrors(err);
+      res.status(status).json(response);
     }
-  });
 });
 
 module.exports = router;
