@@ -55,7 +55,7 @@ const handleAuthError = (err, req, res, next) => {
     message: 'Error in authentication process'
   });
 };
-
+//
 module.exports = {
   verifyToken,
   handleAuthError
